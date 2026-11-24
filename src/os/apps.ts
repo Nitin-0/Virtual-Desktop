@@ -8,12 +8,13 @@ import {
   SquareTerminal,
   FileText,
   ListChecks,
+  Puzzle,
 } from 'lucide-react';
 
 export interface AppDef {
   id: string;
   name: string;
-  category: 'System' | 'Productivity' | 'Reference';
+  category: 'System' | 'Productivity' | 'Reference' | 'Games';
   description: string;
   keywords: string[];
   icon: LucideIcon;
@@ -127,6 +128,19 @@ export const APPS: AppDef[] = [
     defaultW: 640,
     defaultH: 520,
     minW: 380,
+    minH: 300,
+  },
+  {
+    id: 'hanoi',
+    name: 'Tower of Hanoi',
+    category: 'Games',
+    description: 'Classic puzzle with adjustable difficulty',
+    keywords: ['hanoi', 'puzzle', 'tower', 'game'],
+    icon: Puzzle,
+    multi: true,
+    defaultW: 500,
+    defaultH: 400,
+    minW: 400,
     minH: 300,
   },
 ];
