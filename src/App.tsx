@@ -4,6 +4,7 @@ import { BootScreen } from './components/BootScreen';
 import { AuthProvider } from './context/AuthProvider';
 import { ContextMenu } from './components/ContextMenu';
 import { Desktop } from './components/Desktop';
+import { MobileShell } from './components/MobileShell';
 import { DialogHost } from './components/DialogHost';
 import { Notifications } from './components/Notifications';
 import { StartMenu } from './components/StartMenu';
@@ -14,6 +15,7 @@ import { WALLPAPERS } from './os/types';
 import { resolveTheme, themeVars } from './os/themes';
 import { useWallpaperSrc } from './os/useWallpaperSrc';
 import { pruneWallpaperFiles } from './os/wallpaperStore';
+import { useShellMode } from './os/useShellMode';
 
 function Corners() {
   return (
@@ -49,6 +51,7 @@ function useRefuseStrayDrops() {
 
 function Shell() {
   const { booted, settings, windows } = useOS();
+  const shell = useShellMode(settings.shellMode);
   useRefuseStrayDrops();
   const customWall = settings.customWallpapers.find((item) => item.id === settings.wallpaper) ?? null;
   const customSrc = useWallpaperSrc(customWall);
@@ -75,6 +78,7 @@ function Shell() {
       data-theme={theme.id}
       style={style}
       data-animations={settings.animations ? 'on' : 'off'}
+      data-shell={shell}
       data-testid="os-root"
     >
       <div className="os-wallpaper" data-testid="wallpaper">
@@ -85,11 +89,17 @@ function Shell() {
       {settings.showGrid && <div className="os-grid" />}
       <div className="os-vignette" />
       <Corners />
-      <Desktop />
-      {windows.map((win) => <WindowFrame key={win.id} win={win} />)}
+      {shell === 'mobile' ? (
+        <MobileShell />
+      ) : (
+        <>
+          <Desktop />
+          {windows.map((win) => <WindowFrame key={win.id} win={win} />)}
+        </>
+      )}
       <div className="os-dim" style={{ opacity: (100 - settings.brightness) / 140 }} />
-      <Taskbar />
-      <StartMenu />
+      {shell === 'desktop' && <Taskbar />}
+      {shell === 'desktop' && <StartMenu />}
       <ContextMenu />
       <Notifications />
       <DialogHost />

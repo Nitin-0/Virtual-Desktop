@@ -1,32 +1,12 @@
-import { Component, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
+import { type PointerEvent as ReactPointerEvent } from 'react';
 import { Minus, Square, X } from 'lucide-react';
 import { getApp } from '../os/apps';
 import type { AppWindow } from '../os/types';
 import { useOS } from '../context/OSContext';
+import { AppBoundary } from './AppBoundary';
 import { AppHost } from './AppHost';
 
 const EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const;
-
-class Boundary extends Component<{ children: ReactNode; onClose: () => void }, { error: string | null }> {
-  state = { error: null as string | null };
-
-  static getDerivedStateFromError(error: Error) {
-    return { error: error.message || 'This window hit an unexpected error.' };
-  }
-
-  render() {
-    if (this.state.error) {
-      return (
-        <div className="app-error">
-          <p>This window stopped.</p>
-          <p>{this.state.error}</p>
-          <button type="button" className="btn btn-primary" onClick={this.props.onClose}>Close window</button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 export function WindowFrame({ win }: { win: AppWindow }) {
   const { activeId, focusWindow, closeWindow, minimizeWindow, toggleMaximize, moveWindow, resizeWindow, settings } = useOS();
@@ -167,9 +147,9 @@ export function WindowFrame({ win }: { win: AppWindow }) {
       ))}
       <div className="window-corners" aria-hidden="true"><span /><span /><span /><span /></div>
       <div className={`window-body${settings.animations ? '' : ' no-anim'}`}>
-        <Boundary onClose={() => { void closeWindow(win.id); }}>
+        <AppBoundary onClose={() => { void closeWindow(win.id); }}>
           <AppHost win={win} />
-        </Boundary>
+        </AppBoundary>
       </div>
     </section>
   );

@@ -14,6 +14,13 @@ export function GuideApp() {
         <li>Settings → Account changes your profile picture and password.</li>
         <li>Accounts and passwords are saved as plain text in this browser. They lock the virtual desktop only; they are not real security.</li>
       </ul>
+      <h3>Phones and tablets</h3>
+      <ul>
+        <li>On phones and touch tablets the layout switches to a mobile home screen: tap an icon to open an app full screen.</li>
+        <li>The bar at the bottom has Back (close the current app), Home (all apps keep running), and Recent apps (switch or close).</li>
+        <li>Your phone’s own back button or gesture works as Back.</li>
+        <li>Settings → Desktop → Layout can force Desktop or Mobile on any device.</li>
+      </ul>
       <h3>Desktop</h3>
       <ul>
         <li>Double-click an icon to open it. Drag icons to rearrange them. Positions are saved.</li>
