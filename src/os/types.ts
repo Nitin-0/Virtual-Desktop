@@ -13,6 +13,8 @@ export const MAX_FILE_CHARS = 1_500_000;
 export type ThemeId = string;
 export type IconSize = 'small' | 'medium' | 'large';
 export type InventoryView = 'grid' | 'list';
+/** Which shell to show: Windows-style desktop, Android-style mobile, or pick by device. */
+export type ShellMode = 'auto' | 'desktop' | 'mobile';
 
 export interface Settings {
   theme: ThemeId;
@@ -26,6 +28,7 @@ export interface Settings {
   showSeconds: boolean;
   /** Show the boot sequence each time the page opens or reloads. */
   bootScreen: boolean;
+  shellMode: ShellMode;
   username: string;
   hintDismissed: boolean;
   iconPositions: Record<string, { x: number; y: number }>;

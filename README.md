@@ -53,6 +53,18 @@ Add `?fast=1` to skip the boot delay.
 
 Accounts are stored in `localStorage` (`aincrad-os-accounts`), **with passwords in plain text**. This is a convenience lock for the virtual desktop, not security: anyone using this browser profile can read or clear it, and there is no password recovery. All accounts on a browser share the same files and settings for now.
 
+## Phones and tablets
+
+Phones (screens narrower than 768px) and touch tablets such as iPads get an Android-style layout instead of the desktop:
+
+- **Status bar** with time, notifications, sound, and connection.
+- **Home screen** with a clock, an app grid, and a dock (Inventory, Codex, Checklist, Settings).
+- **Apps open full screen**, one at a time. Apps keep running in the background.
+- **Navigation bar**: Back closes the current app (it saves first) and returns to the previous one; Home shows the home screen; Recent apps lists running apps (tap to switch, × to close, Clear all).
+- The phone's own back button or gesture works as Back instead of leaving the site.
+
+Settings → Desktop → **Layout** chooses Automatic, Desktop, or Mobile.
+
 ## Desktop
 
 - Double-click an icon to open it. Drag icons; positions are saved.
