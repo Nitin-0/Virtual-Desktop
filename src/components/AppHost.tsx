@@ -3,6 +3,7 @@ import { CalculatorApp } from '../apps/Calculator';
 import { ChecklistApp } from '../apps/Checklist';
 import { EditorApp } from '../apps/Editor';
 import { GuideApp } from '../apps/Guide';
+import { HanoiApp } from '../apps/Hanoi';
 import { InventoryApp } from '../apps/Inventory';
 import { SettingsApp } from '../apps/SettingsApp';
 import { SystemApp } from '../apps/SystemInfo';
@@ -26,6 +27,8 @@ export function AppHost({ win }: { win: AppWindow }) {
       return <CalculatorApp windowId={win.id} />;
     case 'guide':
       return <GuideApp />;
+    case 'hanoi':
+      return <HanoiApp win={win} />;
     default:
       return <div className="app-error">Unknown application.</div>;
   }
