@@ -471,7 +471,7 @@ button { cursor: pointer; }
 
 /* Sign-in, lock, and sleep screens */
 .auth, .sleep-screen { position: fixed; inset: 0; z-index: 1700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 16px; }
-.auth { background: rgb(4 7 13 / 0.45); backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1); }
+.auth { background: rgb(4 7 13 / 0.45); backdrop-filter: blur(18px) saturate(1.1);}
 .auth-clock { display: grid; justify-items: center; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
 .auth-clock strong { font-size: clamp(44px, 9vw, 72px); font-weight: 300; letter-spacing: 0.02em; line-height: 1; }
 .auth-clock span { font-size: 16px; opacity: 0.9; }
@@ -564,7 +564,7 @@ button { cursor: pointer; }
 .m-icon-label { font-size: 12px; line-height: 1.2; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.8); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .m-dock {
   margin-top: auto; display: flex; justify-content: space-around; padding: 10px 8px; border-radius: 26px;
-  background: rgba(255,255,255,0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.18); backdrop-filter: blur(14px);
 }
 .m-dock .m-icon-tile { width: 52px; height: 52px; }
 
@@ -583,7 +583,7 @@ button { cursor: pointer; }
 .m-app-body { flex: 1; min-height: 0; overflow: auto; }
 
 /* Recents */
-.m-recents { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; padding: 14px 14px 10px; background: rgb(4 7 13 / 0.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.m-recents { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; padding: 14px 14px 10px; background: rgb(4 7 13 / 0.72); backdrop-filter: blur(12px); }
 .m-recents-title { margin: 0 0 10px; color: #fff; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
 .m-recents-empty { margin: auto; color: rgba(255,255,255,0.7); }
 .m-recents-list { flex: 1; min-height: 0; overflow-y: auto; display: grid; gap: 10px; align-content: start; }
@@ -599,7 +599,7 @@ button { cursor: pointer; }
 .m-nav {
   flex: none; display: flex; justify-content: space-around; align-items: center;
   height: calc(48px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
-  background: rgb(4 7 13 / 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: rgb(4 7 13 / 0.88); backdrop-filter: blur(10px);
 }
 .m-nav button { width: 64px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 20px; background: transparent; color: #fff; -webkit-tap-highlight-color: transparent; }
 .m-nav button:active, .m-nav button.is-active { background: rgba(255,255,255,0.14); }
@@ -626,7 +626,7 @@ button { cursor: pointer; }
 
 .m-drawer {
   position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column;
-  background: rgb(8 11 18 / 0.86); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  background: rgb(8 11 18 / 0.86); backdrop-filter: blur(18px);
   animation: m-drawer-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @keyframes m-drawer-in { from { transform: translateY(40%); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -670,7 +670,7 @@ button { cursor: pointer; }
 .m-shade {
   max-height: 100%; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 14px;
   padding: calc(14px + env(safe-area-inset-top)) 16px 0; border-radius: 0 0 26px 26px;
-  background: rgb(12 16 24 / 0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgb(12 16 24 / 0.94); backdrop-filter: blur(20px);
   color: #fff; box-shadow: 0 18px 40px rgba(0,0,0,0.45); animation: m-shade-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @keyframes m-shade-in { from { transform: translateY(-30%); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -718,7 +718,7 @@ button { cursor: pointer; }
 .m-glance { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; touch-action: none; cursor: pointer; }
 .m-glance-clock .auth-clock strong { font-size: clamp(64px, 22vw, 104px); }
 .m-glance-notes { list-style: none; margin: 28px 0 0; padding: 0; width: min(420px, 100%); display: grid; gap: 8px; }
-.m-glance-notes li { padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.16); color: #fff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.m-glance-notes li { padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.16); color: #fff; backdrop-filter: blur(8px); }
 .m-glance-notes strong, .m-glance-notes span { display: block; }
 .m-glance-notes strong { font-size: 14px; }
 .m-glance-notes span { font-size: 12px; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -784,7 +784,7 @@ button { cursor: pointer; }
 .m-glance { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; touch-action: none; cursor: pointer; }
 .m-glance-clock .auth-clock strong { font-size: clamp(64px, 22vw, 104px); }
 .m-glance-notes { list-style: none; margin: 28px 0 0; padding: 0; width: min(420px, 100%); display: grid; gap: 8px; }
-.m-glance-notes li { padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.16); color: #fff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.m-glance-notes li { padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.16); color: #fff; backdrop-filter: blur(8px);}
 .m-glance-notes strong, .m-glance-notes span { display: block; }
 .m-glance-notes strong { font-size: 14px; }
 .m-glance-notes span { font-size: 12px; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -847,7 +847,7 @@ button { cursor: pointer; }
 .m-sheet {
   width: 100%; max-width: 640px; margin: 0 auto; max-height: calc(100% - 40px - env(safe-area-inset-top));
   display: flex; flex-direction: column; border-radius: 22px 22px 0 0;
-  background: rgb(14 18 28 / 0.96); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); color: #fff;
+  background: rgb(14 18 28 / 0.96); backdrop-filter: blur(18px); color: #fff;
   padding-bottom: 18px;
   animation: m-drawer-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
