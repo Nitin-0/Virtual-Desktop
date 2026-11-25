@@ -17,7 +17,14 @@ export function GuideApp() {
       <h3>Phones and tablets</h3>
       <ul>
         <li>On phones and touch tablets the layout switches to a mobile home screen: tap an icon to open an app full screen.</li>
+        <li>Swipe up on the home screen, or tap All apps, to see every app A–Z. The search box there finds apps and files. Swipe down, Back, or Home closes it.</li>
         <li>The bar at the bottom has Back (close the current app), Home (all apps keep running), and Recent apps (switch or close).</li>
+        <li>Tap + in the middle of the home-screen dock to start a note with any method: checklist, Cornell, outline, mind map, and more. Notes are saved in /Home/Notes; My notes opens that folder, and your latest notes are listed for quick access.</li>
+        <li>In Recent apps, swipe a card sideways to close that app.</li>
+        <li>Pull down from the top (or tap the status bar) for notifications and quick settings: sound, animations, brightness, theme, and Sleep / Lock / Log out.</li>
+        <li>When locked, swipe up on the lock screen to enter your password.</li>
+        <li>Long-press anything for its menu (the same as right-click on a computer): rename, move, new notes, Move to Trash.</li>
+        <li>In Inventory, tap once to open. Back returns to the previous folder before closing Inventory. Use Move to… to move items into another folder.</li>
         <li>Your phone’s own back button or gesture works as Back.</li>
         <li>Settings → Desktop → Layout can force Desktop or Mobile on any device.</li>
       </ul>
@@ -66,7 +73,7 @@ export function GuideApp() {
       <h3>Notes</h3>
       <ul>
         <li>Right-click the desktop or an Inventory folder and choose New checklist, or New note for a note-taking method.</li>
-        <li>Methods: Checklist, Cornell, Outline, Mind map, Charting, Sentence, Boxing, Zettelkasten, Flow-based, Bullet journal, Q / E / C, Split page, and Feynman. Hover a method to see what it is for.</li>
+        <li>Methods: Checklist, Simple note, Cornell, Outline, Mind map, Charting, Sentence, Boxing, Zettelkasten, Flow-based, Bullet journal, Q / E / C, Split page, and Feynman. Hover a method to see what it is for.</li>
         <li>Each method creates a text file with that method’s layout and opens it in Codex. Edit the layout freely.</li>
         <li>Checklists are <code>.todo</code> files and open in the Checklist app. Enter adds an item, Backspace on an empty item removes it, Alt+Up/Down reorders.</li>
         <li>A checklist is plain <code>- [ ]</code> text. Use Open as text to edit it in Codex, or <code>cat</code> it in Terminal.</li>

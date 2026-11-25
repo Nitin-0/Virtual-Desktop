@@ -1,11 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowRight, Eye, EyeOff, UserRound } from 'lucide-react';
+import { ArrowRight, ChevronUp, Eye, EyeOff, UserRound } from 'lucide-react';
 import { useAuth } from '../context/authContext';
 import { useOS } from '../context/OSContext';
 import { findAccount, getLastUser } from '../os/accounts';
 import { OS_NAME } from '../os/types';
 import { useNow } from '../os/useNow';
 import { messageOf } from '../os/util';
+import { useShellMode } from '../os/useShellMode';
+import { useSwipe } from '../os/useSwipe';
 
 export function Avatar({ src, name, size = 88 }: { src?: string; name: string; size?: number }) {
   return (
@@ -185,18 +187,69 @@ function Asleep() {
   );
 }
 
+/**
+ * Mobile lock screen, Android style: a glance view with the clock and recent
+ * notifications. Swipe up (or tap) to show the password entry.
+ */
+function MobileLocked() {
+  const { notifications } = useOS();
+  const { account } = useAuth();
+  const [revealed, setRevealed] = useState(false);
+  const swipe = useSwipe({ onUp: () => setRevealed(true), threshold: 40 });
+
+  if (revealed) {
+    return (
+      <>
+        <Clock />
+        <Locked />
+      </>
+    );
+  }
+  return (
+    <div className="m-glance" data-testid="m-lock-glance" {...swipe} onClick={() => setRevealed(true)}>
+      <div className="m-glance-clock">
+        <Clock />
+      </div>
+      {notifications.length > 0 && (
+        <ul className="m-glance-notes" aria-label="Recent notifications">
+          {notifications.slice(0, 3).map((notice) => (
+            <li key={notice.id}>
+              <strong>{notice.title}</strong>
+              {notice.body && <span>{notice.body}</span>}
+            </li>
+          ))}
+          {notifications.length > 3 && <li className="m-glance-more">+{notifications.length - 3} more</li>}
+        </ul>
+      )}
+      <div className="m-glance-foot">
+        <Avatar src={account?.avatar} name={account?.username ?? ''} size={44} />
+        <ChevronUp size={22} aria-hidden="true" className="m-glance-arrow" />
+        <span>Swipe up to unlock</span>
+      </div>
+    </div>
+  );
+}
+
 /** Covers the desktop whenever nobody is signed in, or the session is locked or asleep. */
 export function AuthScreens() {
-  const { booted } = useOS();
+  const { booted, settings } = useOS();
   const { phase } = useAuth();
+  const shell = useShellMode(settings.shellMode);
   if (!booted || phase === 'active') return null;
   if (phase === 'asleep') return <Asleep />;
+  const mobile = shell === 'mobile';
   return (
-    <div className="auth" data-testid="auth-screen" role="dialog" aria-modal="true" aria-label={phase === 'locked' ? 'Locked' : 'Sign in'}>
-      <Clock />
-      {phase === 'signup' && <SignUp />}
-      {phase === 'login' && <SignIn />}
-      {phase === 'locked' && <Locked />}
+    <div className={`auth${mobile ? ' auth-mobile' : ''}`} data-testid="auth-screen" role="dialog" aria-modal="true" aria-label={phase === 'locked' ? 'Locked' : 'Sign in'}>
+      {mobile && phase === 'locked' ? (
+        <MobileLocked />
+      ) : (
+        <>
+          <Clock />
+          {phase === 'signup' && <SignUp />}
+          {phase === 'login' && <SignIn />}
+          {phase === 'locked' && <Locked />}
+        </>
+      )}
     </div>
   );
 }

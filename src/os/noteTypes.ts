@@ -38,6 +38,13 @@ export const NOTE_TYPES: NoteType[] = [
     template: (title) => `# ${title}\n- [ ] First item\n`,
   },
   {
+    id: 'note',
+    label: 'Simple note',
+    blurb: 'A blank page, just write',
+    defaultName: 'Note.txt',
+    template: (title) => `${title}\n\n`,
+  },
+  {
     id: 'cornell',
     label: 'Cornell',
     blurb: 'Cues, notes, and a summary',

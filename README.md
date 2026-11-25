@@ -60,8 +60,15 @@ Phones (screens narrower than 768px) and touch tablets such as iPads get an Andr
 - **Status bar** with time, notifications, sound, and connection.
 - **Home screen** with a clock, an app grid, and a dock (Inventory, Codex, Checklist, Settings).
 - **Apps open full screen**, one at a time. Apps keep running in the background.
-- **Navigation bar**: Back closes the current app (it saves first) and returns to the previous one; Home shows the home screen; Recent apps lists running apps (tap to switch, × to close, Clear all).
+- **App drawer**: swipe up on the home screen (or tap **All apps**) for every app A–Z, with a search box that finds apps and files. Swipe down on its handle, Back, or Home closes it.
+- **Notification shade**: pull down from the status bar or the home screen (or tap the status bar). Quick toggles for Sound, Animations, and Desktop layout; a brightness slider; theme swatches; Sleep, Lock, and Log out; and your notifications (dismiss one or Clear all). Swipe up, tap below it, Back, or Home closes it.
+- **Lock screen**: Lock shows a glance screen with the clock and recent notifications; swipe up (or tap) to enter your password.
+- **Navigation bar**: Back closes the current app (it saves first) and returns to the previous one; Home shows the home screen; Recent apps lists running apps (tap to switch; swipe a card sideways or tap × to close; Clear all).
+- **New note (+)**: the **+** in the middle of the home-screen dock opens a sheet with every note method (Simple note and Checklist highlighted at the top, then Cornell, Outline, Mind map, and the rest) and your three most recent notes. Notes made here are saved in `/Home/Notes` (created the first time); **My notes** opens that folder.
 - The phone's own back button or gesture works as Back instead of leaving the site.
+
+- **Touch**: long-press opens the same menu as right-click (iPhone and Android). In Inventory a single tap opens a file or folder, Back steps back through the folders you visited, and **Move to…** (item menu or toolbar) moves items without drag-and-drop. The toolbar shrinks to a search row plus one swipeable row of actions.
+- **On-screen keyboard**: the layout shrinks to the space above the keyboard, the navigation bar hides while typing, and the field being typed in scrolls into view.
 
 Settings → Desktop → **Layout** chooses Automatic, Desktop, or Mobile.
 
@@ -124,6 +131,7 @@ Right-click the desktop or an Inventory folder for **New checklist** and **New n
 | Method | What the template gives you |
 | --- | --- |
 | Checklist | `.todo` file, opens in the Checklist app |
+| Simple note | A blank page with just the title |
 | Cornell | Cues, notes, summary |
 | Outline | Numbered topics with indented subpoints |
 | Mind map | Central idea with a text branch tree |

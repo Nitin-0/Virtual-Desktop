@@ -638,6 +638,36 @@ export async function searchArchive(query: string, fromId = 'root'): Promise<{ n
   });
 }
 
+/** Every folder outside /Trash with its path and depth, in tree order (for "Move to…"). */
+export async function listFolders(): Promise<{ node: FSNode; path: string; depth: number }[]> {
+  return lock(async () => {
+    const nodes = await getAllUnlocked();
+    const byParent = new Map<string, FSNode[]>();
+    for (const node of nodes) {
+      if (node.type !== 'folder' || !node.parentId) continue;
+      const list = byParent.get(node.parentId) ?? [];
+      list.push(node);
+      byParent.set(node.parentId, list);
+    }
+    const root = nodes.find((node) => node.id === 'root');
+    const out: { node: FSNode; path: string; depth: number }[] = [];
+    if (!root) return out;
+    const walk = (id: string, path: string, depth: number, guard: Set<string>) => {
+      const children = (byParent.get(id) ?? []).filter((child) => child.id !== TRASH_ID).sort(compareNodes);
+      for (const child of children) {
+        if (guard.has(child.id)) continue;
+        guard.add(child.id);
+        const childPath = path === '/' ? `/${child.name}` : `${path}/${child.name}`;
+        out.push({ node: child, path: childPath, depth });
+        walk(child.id, childPath, depth + 1, guard);
+      }
+    };
+    out.push({ node: root, path: '/', depth: 0 });
+    walk('root', '/', 1, new Set());
+    return out;
+  });
+}
+
 /** Most recently modified files outside /Trash, newest first, with their paths. */
 export async function recentFiles(limit = 5): Promise<{ node: FSNode; path: string }[]> {
   return lock(async () => {

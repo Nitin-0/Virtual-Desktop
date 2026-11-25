@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useOS } from '../context/OSContext';
 import type { MenuItem } from '../os/types';
 
@@ -21,6 +21,7 @@ function keepOnScreen(el: HTMLDivElement | null): void {
 
 interface Flyout {
   parentId: string;
+  label: string;
   items: MenuItem[];
   left: number;
   top: number;
@@ -97,6 +98,9 @@ export function ContextMenu() {
 
   const left = Math.max(8, Math.min(menu.x, window.innerWidth - MENU_W));
   const top = Math.max(8, Math.min(menu.y, window.innerHeight - estimateHeight(menu.items) - 8));
+  // Too narrow for a submenu beside the menu (phones): the submenu replaces the menu,
+  // with a back row, instead of being drawn on top of it.
+  const narrow = window.innerWidth < MENU_W * 2 + 24;
 
   const openFlyout = (item: MenuItem, el: HTMLElement) => {
     if (!item.children || item.disabled) {
@@ -107,8 +111,19 @@ export function ContextMenu() {
     const rect = el.getBoundingClientRect();
     const roomRight = rect.right + MENU_W + 8 <= window.innerWidth;
     const height = Math.min(estimateHeight(item.children), window.innerHeight - 16);
+    if (narrow) {
+      setFlyout({
+        parentId: item.id,
+        label: item.label,
+        items: item.children,
+        left,
+        top: Math.max(8, Math.min(top, window.innerHeight - height - 8)),
+      });
+      return;
+    }
     setFlyout({
       parentId: item.id,
+      label: item.label,
       items: item.children,
       left: roomRight ? rect.right + 2 : Math.max(8, rect.left - MENU_W - 2),
       top: Math.max(8, Math.min(rect.top, window.innerHeight - height - 8)),
@@ -124,10 +139,30 @@ export function ContextMenu() {
     item.onSelect?.();
   };
 
+  if (narrow && flyout) {
+    return (
+      <div ref={ref} style={{ display: 'contents' }}>
+        <div
+          key={flyout.parentId}
+          ref={keepOnScreen}
+          className="ctx-menu ctx-sub"
+          style={{ left: flyout.left, top: flyout.top }}
+          role="menu"
+          data-testid="context-submenu"
+        >
+          <button type="button" className="ctx-item ctx-back" data-testid="menu-back" onClick={() => setFlyout(null)}>
+            <span><ChevronLeft size={15} aria-hidden="true" /> {flyout.label}</span>
+          </button>
+          <MenuList items={flyout.items} onPick={pick} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={ref} style={{ display: 'contents' }}>
       <div key={`${menu.x},${menu.y}`} ref={keepOnScreen} className="ctx-menu" style={{ left, top }} role="menu" data-testid="context-menu">
-        <MenuList items={menu.items} onHover={openFlyout} onPick={pick} activeParent={flyout?.parentId ?? null} />
+        <MenuList items={menu.items} onHover={narrow ? undefined : openFlyout} onPick={pick} activeParent={flyout?.parentId ?? null} />
       </div>
       {flyout && (
         <div
