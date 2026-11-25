@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ClipboardPaste,
   Copy,
@@ -13,11 +13,13 @@ import {
   Trash2,
   Undo2,
 } from 'lucide-react';
-import { FileText, Folder, ListChecks, Lock } from 'lucide-react';
+import { FileText, Folder, FolderInput, ListChecks, Lock } from 'lucide-react';
 import { useOS } from '../context/OSContext';
 import { noteMenuItems, useNotes } from '../context/useNotes';
 import { isChecklistName } from '../os/noteTypes';
 import { readDrop, useDrop } from '../context/useDrop';
+import { registerBackHandler } from '../os/backHandlers';
+import { useShellMode } from '../os/useShellMode';
 import { isAcceptedDrag, setDraggedNodes } from '../os/dnd';
 import type { FSNode } from '../os/types';
 import { byteSize, formatBytes, formatWhen, messageOf } from '../os/util';
@@ -39,10 +41,71 @@ import {
   searchArchive,
   TRASH_ID,
   trashNode,
+  listFolders,
 } from '../os/vfs';
 
 function rootLabel(node: FSNode): string {
   return node.id === 'root' ? 'Archive' : node.name;
+}
+
+/** "Move to…": pick a destination folder. Works with touch, where drag-and-drop does not. */
+function MoveDialog({ nodes, onClose, onPick }: {
+  nodes: FSNode[];
+  onClose: () => void;
+  onPick: (folder: FSNode, label: string) => void;
+}) {
+  const [folders, setFolders] = useState<{ node: FSNode; path: string; depth: number }[] | null>(null);
+  const [sources, setSources] = useState<string[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const all = await listFolders();
+      const paths = await Promise.all(nodes.map((node) => pathOf(node.id)));
+      if (alive) {
+        setFolders(all);
+        setSources(paths);
+      }
+    })();
+    return () => { alive = false; };
+  }, [nodes]);
+
+  // A folder cannot move into itself or anything inside it.
+  const insideSource = (path: string) => nodes.some((node, i) => node.type === 'folder' && sources[i] && (path === sources[i] || path.startsWith(`${sources[i]}/`)));
+  const isCurrent = (folder: FSNode) => nodes.every((node) => node.parentId === folder.id);
+
+  return (
+    <div className="props-back" onMouseDown={onClose}>
+      <div className="props-panel move-panel" role="dialog" aria-label="Move to folder" data-testid="move-dialog" onMouseDown={(event) => event.stopPropagation()}>
+        <p className="dialog-kicker">Move {nodes.length === 1 ? `“${nodes[0]!.name}”` : `${nodes.length} items`} to</p>
+        <div className="move-list">
+          {!folders && <p className="empty-note">Loading folders…</p>}
+          {folders?.map(({ node, path, depth }) => {
+            const label = node.id === 'root' ? 'Archive' : node.name;
+            const disabled = insideSource(path) || isCurrent(node);
+            return (
+              <button
+                key={node.id}
+                type="button"
+                className="move-item"
+                style={{ paddingLeft: 10 + depth * 16 }}
+                disabled={disabled}
+                data-testid={`move-to-${path}`}
+                onClick={() => onPick(node, label)}
+              >
+                <Folder size={16} aria-hidden="true" />
+                <span>{label}</span>
+                {isCurrent(node) && <em>current</em>}
+              </button>
+            );
+          })}
+        </div>
+        <div className="dialog-actions">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function InventoryApp({ windowId, initialPath }: { windowId: string; initialPath?: string }) {
@@ -62,6 +125,15 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
     showMenu,
   } = useOS();
   const [path, setPath] = useState(initialPath || '/Home');
+  // Folders visited before the current one, so mobile Back can retrace them.
+  const navHistory = useRef<string[]>([]);
+  // When a tap opens a folder, ignore taps for a moment so a habitual double-tap
+  // does not also open whatever item lands under the finger in the new folder.
+  const openedFolderAt = useRef(0);
+  const navigate = (next: string) => {
+    if (next !== path) navHistory.current.push(path);
+    setPath(next);
+  };
   const [folder, setFolder] = useState<FSNode | null>(null);
   const [items, setItems] = useState<FSNode[]>([]);
   const [crumbs, setCrumbs] = useState<{ name: string; path: string }[]>([]);
@@ -74,6 +146,8 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
   const [dropId, setDropId] = useState<string | null>(null);
   const { openFile, createNote } = useNotes();
   const { applyDrop } = useDrop();
+  const mobile = useShellMode(settings.shellMode) === 'mobile';
+  const [moveTargets, setMoveTargets] = useState<FSNode[] | null>(null);
   const [bodyDrop, setBodyDrop] = useState(false);
 
   useEffect(() => {
@@ -146,17 +220,39 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
   const inTrashView = path === '/Trash' || path.startsWith('/Trash/');
   const canRestore = (nodes: FSNode[]) => nodes.length > 0 && nodes.every((node) => node.parentId === TRASH_ID);
 
+  // Mobile Back: close a panel, then clear search, then go to the previous folder.
+  // Only when there is nothing left does Back close Inventory.
+  useEffect(() => {
+    if (!mobile) return;
+    return registerBackHandler(windowId, () => {
+      if (moveTargets) { setMoveTargets(null); return true; }
+      if (propsFor) { setPropsFor(null); return true; }
+      if (query) { setQuery(''); return true; }
+      const previous = navHistory.current.pop();
+      if (previous === undefined) return false;
+      setPath(previous);
+      setSelected([]);
+      return true;
+    });
+  }, [mobile, windowId, moveTargets, propsFor, query]);
+
   const goUp = () => {
     if (path === '/') return;
     const index = path.lastIndexOf('/');
-    setPath(index <= 0 ? '/' : path.slice(0, index));
+    navigate(index <= 0 ? '/' : path.slice(0, index));
     setSelected([]);
   };
 
+  // The folder whose items are on screen. Right after navigating, `path` already points
+  // to the new folder while the old items are still shown; joining onto `path` then
+  // would build a wrong path (e.g. /Home/Documents/Documents).
+  const shownPath = crumbs.length ? crumbs[crumbs.length - 1]!.path : path;
+
   const openNode = (node: FSNode, nodePath?: string) => {
     if (node.type === 'folder') {
+      if (!nodePath && shownPath !== path) return; // still loading the folder just opened
       setQuery('');
-      setPath(nodePath ?? (path === '/' ? `/${node.name}` : `${path}/${node.name}`));
+      navigate(nodePath ?? (shownPath === '/' ? `/${node.name}` : `${shownPath}/${node.name}`));
       setSelected([]);
       return;
     }
@@ -360,6 +456,15 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
       { id: 'rename', label: 'Rename', disabled: isProtected(node.id), onSelect: () => { void renameItem(node); } },
       { id: 'copy', label: 'Copy', onSelect: () => setClipboard({ mode: 'copy', ids: [node.id] }) },
       { id: 'cut', label: 'Cut', disabled: isProtected(node.id), onSelect: () => setClipboard({ mode: 'cut', ids: [node.id] }) },
+      {
+        id: 'move',
+        label: 'Move to…',
+        disabled: isProtected(node.id),
+        onSelect: () => {
+          const group = selected.includes(node.id) && selected.length > 1 ? selectedNodes.filter((item) => !isProtected(item.id)) : [node];
+          setMoveTargets(group);
+        },
+      },
       { id: 'paste', label: 'Paste into', disabled: node.type !== 'folder' || !clipboard, onSelect: () => { void pasteInto(node.id); } },
       { id: 'sep', label: '', separator: true },
       ...(inTrashView || node.parentId === TRASH_ID
@@ -410,13 +515,21 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
           if (payload) void applyDrop(payload, node.id, node.name);
         }}
         onClick={(event) => {
+          if (mobile && !event.ctrlKey && !event.metaKey) {
+            // Phones and tablets: a single tap opens, like Android file managers.
+            if (Date.now() - openedFolderAt.current < 400) return;
+            if (node.type === 'folder') openedFolderAt.current = Date.now();
+            setSelected([node.id]);
+            openNode(node, nodePath);
+            return;
+          }
           if (event.ctrlKey || event.metaKey) {
             setSelected((prev) => (prev.includes(node.id) ? prev.filter((id) => id !== node.id) : [...prev, node.id]));
           } else {
             setSelected([node.id]);
           }
         }}
-        onDoubleClick={() => openNode(node, nodePath)}
+        onDoubleClick={() => { if (!mobile) openNode(node, nodePath); }}
         onContextMenu={(event) => onItemMenu(event, node)}
       >
         <span className="inv-glyph">
@@ -476,6 +589,7 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
           : 'Virtual archive · IndexedDB in this browser · not your Windows, macOS, or Linux disk'}
       </p>
       <div className="inv-toolbar">
+        <div className="inv-actions">
         <button type="button" className="btn btn-ghost" data-testid="inv-new-folder" disabled={inTrashView} onClick={() => { void createItem('folder'); }}><FolderPlus size={14} /> Folder</button>
         <button type="button" className="btn btn-ghost" data-testid="inv-new-file" disabled={inTrashView} onClick={() => { void createItem('file'); }}><FilePlus size={14} /> File</button>
         <button
@@ -496,6 +610,13 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
         {inTrashView && (
           <button type="button" className="btn btn-ghost" data-testid="inv-restore" disabled={!canRestore(selectedNodes)} onClick={() => { void restoreItems(); }}><Undo2 size={14} /> Restore</button>
         )}
+        <button
+          type="button"
+          className="btn btn-ghost"
+          data-testid="inv-move"
+          disabled={!selectedNodes.some((item) => !isProtected(item.id)) || inTrashView}
+          onClick={() => setMoveTargets(selectedNodes.filter((item) => !isProtected(item.id)))}
+        ><FolderInput size={14} /> Move to…</button>
         <button type="button" className="btn btn-ghost" data-testid="inv-delete" disabled={!selected.length} onClick={() => { void removeItems(); }}><Trash2 size={14} /> {inTrashView ? 'Delete forever' : 'Delete'}</button>
         {inTrashView && (
           <button type="button" className="btn btn-danger" data-testid="inv-empty-trash" disabled={path !== '/Trash' || !items.length} onClick={() => { void confirmEmptyTrash(); }}>Empty Trash</button>
@@ -504,6 +625,7 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
           const node = selectedNodes[0] ?? folder;
           if (node) void showProperties(node);
         }}><Info size={14} /> Properties</button>
+        </div>
         <span className="toolbar-spacer" />
         <label className="search-field">
           <Search size={14} />
@@ -534,7 +656,7 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
             {index > 0 && <span className="crumb-sep">/</span>}
             <button
               type="button"
-              onClick={() => { setQuery(''); setPath(crumb.path); setSelected([]); }}
+              onClick={() => { setQuery(''); navigate(crumb.path); setSelected([]); }}
               onDragOver={(event) => {
                 if (!isAcceptedDrag(event.dataTransfer)) return;
                 event.preventDefault();
@@ -558,7 +680,7 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
         ))}
       </div>
       <div className={`inv-body ${settings.inventoryView === 'list' ? 'is-list' : 'is-grid'}`} data-testid="inv-body">
-        {error && <p className="empty-note">{error} <button type="button" className="btn btn-ghost" onClick={() => setPath('/')}>Go to Archive</button></p>}
+        {error && <p className="empty-note">{error} <button type="button" className="btn btn-ghost" onClick={() => navigate('/')}>Go to Archive</button></p>}
         {!error && results && (
           results.length === 0
             ? <p className="empty-note">No names match “{query}” under this folder.</p>
@@ -575,6 +697,17 @@ export function InventoryApp({ windowId, initialPath }: { windowId: string; init
         <span>{clipboard ? `${clipboard.mode === 'cut' ? 'Cut' : 'Copied'} ${clipboard.ids.length}` : 'Clipboard empty'}</span>
         <span>Path {path}</span>
       </footer>
+      {moveTargets && (
+        <MoveDialog
+          nodes={moveTargets}
+          onClose={() => setMoveTargets(null)}
+          onPick={(dest, label) => {
+            setMoveTargets(null);
+            setSelected([]);
+            void applyDrop({ kind: 'nodes', ids: moveTargets.map((item) => item.id) }, dest.id, label);
+          }}
+        />
+      )}
       {propsFor && (
         <div className="props-back" onMouseDown={() => setPropsFor(null)}>
           <div className="props-panel" role="dialog" aria-label="Properties" onMouseDown={(event) => event.stopPropagation()}>
